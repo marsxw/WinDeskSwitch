@@ -29,3 +29,5 @@ In this setup, I configured `Ctrl + Alt + A/S/D` as shortcuts to switch between 
 ### Additional Notes
 
 For faster desktop switching back to Windows from VMware, you can use `vmware-kvm.exe` with configured parameters to share a single desktop between Windows and VMware. For more details, refer to VMware's official documentation: [VMware KVM Guide](https://docs.vmware.com/en/VMware-Workstation-Pro/15.0/vmware-kvm.pdf).
+
+![Effect](result.gif)

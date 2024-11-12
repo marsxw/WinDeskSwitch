@@ -29,3 +29,5 @@
 ### 其他说明
 
 为了更快地从 VMware 切换回 Windows 桌面，你可以使用 `vmware-kvm.exe` 配置参数，使 Windows 和 VMware 共用一个桌面。有关更多详细信息，请参阅 VMware 的官方文档：[VMware KVM 指南](https://docs.vmware.com/en/VMware-Workstation-Pro/15.0/vmware-kvm.pdf)。
+
+![Effect](result.gif)

@@ -1,6 +1,8 @@
-#include Lib\AutoHotInterception.ahk
+currentDir := A_ScriptDir
+SetWorkingDir, %currentDir%
+#Include %A_ScriptDir%\Lib\AutoHotInterception.ahk
 
-VDA_PATH := "./Lib/VirtualDesktopAccessor.dll"
+VDA_PATH := currentDir ".\Lib\VirtualDesktopAccessor.dll"
 hVirtualDesktopAccessor := DllCall("LoadLibrary", "Str", VDA_PATH, "Ptr")
 GoToDesktopNumberProc := DllCall("GetProcAddress", "Ptr", hVirtualDesktopAccessor, "AStr", "GoToDesktopNumber", "Ptr")
 GoToDesktopNumber(num) {
@@ -9,7 +11,7 @@ GoToDesktopNumber(num) {
 }
 
 AHI := new AutoHotInterception()
-keyboardId := 1  
+keyboardId := 1
 AHI.SubscribeKey(keyboardId, GetKeySC("Control"), false, Func("KeyEvent").Bind("ctrl"))
 AHI.SubscribeKey(keyboardId, GetKeySC("Alt"), false, Func("KeyEvent").Bind("alt"))
 AHI.SubscribeKey(keyboardId, GetKeySC("a"), false, Func("KeyEvent").Bind("a"))
@@ -38,7 +40,7 @@ KeyEvent(keyName, state) {
     } else if (keyName = "z") {
         z_state := stateText
     }
-    
+
     ; ToolTip, %ctrl_state%   %alt_state%  %a_state%   %s_state%   %z_state%
     if (ctrl_state= "Pressed" && alt_state== "Pressed" ) {
         if(a_state== "Pressed" ){
@@ -51,4 +53,18 @@ KeyEvent(keyName, state) {
             GoToDesktopNumber(2)  ; 切换到桌面 3
         }
     }
-}       
+}
+
+; Use the shortcut Ctrl + Alt + letter
+^!A::GoToDesktopNumber(0)  ; Switch to desktop 1
+^!S::GoToDesktopNumber(1)  ; Switch to desktop 2
+^!Z::GoToDesktopNumber(2)  ; Switch to desktop 3
+
+; #:WIN  ^:Ctrl !:Alt  +:Shift
+; Map the middle button in Windows Terminal to Ctrl + Shift + V
+#IfWinActive ahk_exe WindowsTerminal.exe ; For Windows Terminal
+    MButton::Send ^+v ; Set the middle button to Ctrl + Shift + V
+#IfWinActive
+
+; Map Ctrl + Alt + G to WIN+V
+^!G::Send #v ; Map Ctrl + Alt + G to WIN+V
