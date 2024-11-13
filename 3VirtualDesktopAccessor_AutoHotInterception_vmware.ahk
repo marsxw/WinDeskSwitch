@@ -11,54 +11,56 @@ GoToDesktopNumber(num) {
 }
 
 AHI := new AutoHotInterception()
-keyboardId := 1
-AHI.SubscribeKey(keyboardId, GetKeySC("Control"), false, Func("KeyEvent").Bind("ctrl"))
-AHI.SubscribeKey(keyboardId, GetKeySC("Alt"), false, Func("KeyEvent").Bind("alt"))
-AHI.SubscribeKey(keyboardId, GetKeySC("a"), false, Func("KeyEvent").Bind("a"))
-AHI.SubscribeKey(keyboardId, GetKeySC("s"), false, Func("KeyEvent").Bind("s"))
-AHI.SubscribeKey(keyboardId, GetKeySC("z"), false, Func("KeyEvent").Bind("z"))
+DeviceList := AHI.GetDeviceList()
 
-ctrl_state :=  "Released"
-alt_state :=  "Released"
-a_state :=  "Released"
-s_state :=  "Released"
-z_state :=  "Released"
+for deviceId, device in DeviceList {
+    GuiControlGet, state, , % hwnd
+    if (device.IsMouse = 0) {
+        AHI.SubscribeKey(deviceId, GetKeySC("Control"), false, Func("KeyEvent").Bind("ctrl"))
+        AHI.SubscribeKey(deviceId, GetKeySC("Alt"), false, Func("KeyEvent").Bind("alt"))
+        AHI.SubscribeKey(deviceId, GetKeySC("a"), false, Func("KeyEvent").Bind("a"))
+        AHI.SubscribeKey(deviceId, GetKeySC("s"), false, Func("KeyEvent").Bind("s"))
+        AHI.SubscribeKey(deviceId, GetKeySC("z"), false, Func("KeyEvent").Bind("z"))
+    }
+}
+
+ctrl_state := 0
+alt_state := 0
+a_state :=  0
+s_state := 0
+z_state :=  0
 
 KeyEvent(keyName, state) {
     global ctrl_state, alt_state, a_state, s_state, z_state, hLvKeyboard
     Gui, ListView, % hLvKeyboard
-    stateText := (state = 1) ? "Pressed" : "Released"
+    scanCode := Format("{:x}", code)
 
     if (keyName = "ctrl") {
-        ctrl_state := stateText
+        ctrl_state := state
     } else if (keyName = "alt") {
-        alt_state := stateText
+        alt_state := state
     } else if (keyName = "a") {
-        a_state := stateText
+        a_state := state
     } else if (keyName = "s") {
-        s_state := stateText
+        s_state := state
     } else if (keyName = "z") {
-        z_state := stateText
+        z_state := state
     }
 
+    ; ToolTip, %keyName%  %state%
     ; ToolTip, %ctrl_state%   %alt_state%  %a_state%   %s_state%   %z_state%
-    if (ctrl_state= "Pressed" && alt_state== "Pressed" ) {
-        if(a_state== "Pressed" ){
-            GoToDesktopNumber(0)  ; 切换到桌面 1
+    if (ctrl_state && alt_state  ) {
+        if(a_state){
+            GoToDesktopNumber(0)
         }
-        else if(s_state== "Pressed" ){
-            GoToDesktopNumber(1)  ; 切换到桌面 2
+        else if(s_state){
+            GoToDesktopNumber(1)
         }
-        else if(z_state== "Pressed" ){
-            GoToDesktopNumber(2)  ; 切换到桌面 3
+        else if(z_state){
+            GoToDesktopNumber(2)
         }
     }
 }
-
-; Use the shortcut Ctrl + Alt + letter
-^!A::GoToDesktopNumber(0)  ; Switch to desktop 1
-^!S::GoToDesktopNumber(1)  ; Switch to desktop 2
-^!Z::GoToDesktopNumber(2)  ; Switch to desktop 3
 
 ; #:WIN  ^:Ctrl !:Alt  +:Shift
 ; Map the middle button in Windows Terminal to Ctrl + Shift + V
@@ -68,3 +70,4 @@ KeyEvent(keyName, state) {
 
 ; Map Ctrl + Alt + G to WIN+V
 ^!G::Send #v ; Map Ctrl + Alt + G to WIN+V
+
