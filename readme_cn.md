@@ -15,7 +15,7 @@
 
 在本方案中，我配置了 `Ctrl + Alt + A/S/D` 作为切换桌面的快捷键，前提是你已经在 Windows 11 中创建了三个桌面。按下 `Ctrl + Alt + A` 会切换到第一个桌面，按下 `Ctrl + Alt + S` 会切换到第二个桌面，按下 `Ctrl + Alt + D` 会切换到第三个桌面。这一设置可以在 Windows 11 的任何位置实现快速桌面切换。你可以在 AHK 脚本中根据自己的需求修改快捷键。
 
-### 关键 AHK 文件说明
+### 关键 AHK 文件说明V
 
 1. **`VirtualDesktopAccessor.ahk`**  
    这种方法可以在 Windows 11 上实现多桌面切换，但在 VMware 中无效。

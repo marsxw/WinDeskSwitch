@@ -1,3 +1,5 @@
+#SingleInstance force
+#Persistent
 currentDir := A_ScriptDir
 SetWorkingDir, %currentDir%
 #Include %A_ScriptDir%\Lib\AutoHotInterception.ahk
@@ -10,56 +12,35 @@ GoToDesktopNumber(num) {
     DllCall(GoToDesktopNumberProc, "Int", num)
 }
 
-AHI := new AutoHotInterception()
+global AHI := new AutoHotInterception()
 DeviceList := AHI.GetDeviceList()
 
+keysList := []
+keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("Control")})
+keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("Alt")})
+keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("a")})
+keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("s")})
+keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("z")})
+
 for deviceId, device in DeviceList {
-    GuiControlGet, state, , % hwnd
     if (device.IsMouse = 0) {
-        AHI.SubscribeKey(deviceId, GetKeySC("Control"), false, Func("KeyEvent").Bind("ctrl"))
-        AHI.SubscribeKey(deviceId, GetKeySC("Alt"), false, Func("KeyEvent").Bind("alt"))
-        AHI.SubscribeKey(deviceId, GetKeySC("a"), false, Func("KeyEvent").Bind("a"))
-        AHI.SubscribeKey(deviceId, GetKeySC("s"), false, Func("KeyEvent").Bind("s"))
-        AHI.SubscribeKey(deviceId, GetKeySC("z"), false, Func("KeyEvent").Bind("z"))
+        for keyInd, key in keysList {
+            AHI.SubscribeKey(deviceId, key.keysc, key.block, Func("KeyEvent").Bind(deviceId, keyInd))
+        }
     }
 }
 
-ctrl_state := 0
-alt_state := 0
-a_state :=  0
-s_state := 0
-z_state :=  0
-
-KeyEvent(keyName, state) {
-    global ctrl_state, alt_state, a_state, s_state, z_state, hLvKeyboard
-    Gui, ListView, % hLvKeyboard
-    scanCode := Format("{:x}", code)
-
-    if (keyName = "ctrl") {
-        ctrl_state := state
-    } else if (keyName = "alt") {
-        alt_state := state
-    } else if (keyName = "a") {
-        a_state := state
-    } else if (keyName = "s") {
-        s_state := state
-    } else if (keyName = "z") {
-        z_state := state
-    }
-
-    ; ToolTip, %keyName%  %state%
-    ; ToolTip, %ctrl_state%   %alt_state%  %a_state%   %s_state%   %z_state%
-    if (ctrl_state && alt_state  ) {
-        if(a_state){
-            GoToDesktopNumber(0)
-        }
-        else if(s_state){
-            GoToDesktopNumber(1)
-        }
-        else if(z_state){
-            GoToDesktopNumber(2)
+KeyEvent(deviceId , keyInd, state) {
+    ; ToolTip,   %deviceId%  %keyInd% %state%
+    global keysList
+    keysList[keyInd].state := state
+    if (keysList[1].state && keysList[2].state && keyInd>2) {
+        if(keysList[keyInd].state){
+            GoToDesktopNumber(keyInd-3)
+            Return
         }
     }
+    AHI.SendKeyEvent(deviceId, keysList[keyInd].keysc, state) ; not target shotkey, don't block
 }
 
 ; #:WIN  ^:Ctrl !:Alt  +:Shift
@@ -70,4 +51,3 @@ KeyEvent(keyName, state) {
 
 ; Map Ctrl + Alt + G to WIN+V
 ^!G::Send #v ; Map Ctrl + Alt + G to WIN+V
-
