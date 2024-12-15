@@ -25,6 +25,7 @@ keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("z")})
 for deviceId, device in DeviceList {
     if (device.IsMouse = 0) {
         for keyInd, key in keysList {
+            AHI.UnsubscribeKey(deviceId, key.keysc)
             AHI.SubscribeKey(deviceId, key.keysc, key.block, Func("KeyEvent").Bind(deviceId, keyInd))
         }
     }
