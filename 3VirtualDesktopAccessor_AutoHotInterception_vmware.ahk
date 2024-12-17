@@ -16,17 +16,24 @@ global AHI := new AutoHotInterception()
 DeviceList := AHI.GetDeviceList()
 
 keysList := []
-keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("Control")})
-keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("Alt")})
+keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("LControl")})
+keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("LAlt")})
 keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("a")})
 keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("s")})
 keysList.Push({"block":1, "state": 0, "keysc": GetKeySC("z")})
+
+keysList1 := []
+keysList1.Push({"block":1, "state": 0, "keysc": GetKeySC("RAlt"), "keysc2": GetKeySC("Home")}) ; RAlt map to home
+keysList1.Push({"block":1, "state": 0, "keysc": GetKeySC("AppsKey"), "keysc2": GetKeySC("End")}) ; AppsKey map to end
 
 for deviceId, device in DeviceList {
     if (device.IsMouse = 0) {
         for keyInd, key in keysList {
             AHI.UnsubscribeKey(deviceId, key.keysc)
             AHI.SubscribeKey(deviceId, key.keysc, key.block, Func("KeyEvent").Bind(deviceId, keyInd))
+        }
+        for keyInd, key in keysList1 {
+            AHI.SubscribeKey(deviceId, key.keysc, key.block, Func("KeyEvent1").Bind(deviceId, keyInd))
         }
     }
 }
@@ -44,6 +51,11 @@ KeyEvent(deviceId , keyInd, state) {
     AHI.SendKeyEvent(deviceId, keysList[keyInd].keysc, state) ; not target shotkey, don't block
 }
 
+KeyEvent1(deviceId , keyInd, state) {
+    ; ToolTip,   %deviceId%  %keyInd% %state%
+    global keysList1
+    AHI.SendKeyEvent(deviceId, keysList1[keyInd].keysc2, state)
+}
 ; #:WIN  ^:Ctrl !:Alt  +:Shift
 ; Map the middle button in Windows Terminal to Ctrl + Shift + V
 #IfWinActive ahk_exe WindowsTerminal.exe ; For Windows Terminal
