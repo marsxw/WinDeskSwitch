@@ -9,7 +9,7 @@ hVirtualDesktopAccessor := DllCall("LoadLibrary", "Str", VDA_PATH, "Ptr")
 GoToDesktopNumberProc := DllCall("GetProcAddress", "Ptr", hVirtualDesktopAccessor, "AStr", "GoToDesktopNumber", "Ptr")
 GoToDesktopNumber(num) {
     global GoToDesktopNumberProc
-    DllCall(GoToDesktopNumberProc, "Int", num)
+    DllCall(GoToDesktopNumberProc, "Int", num-1)
 }
 
 global AHI := new AutoHotInterception()
@@ -18,13 +18,15 @@ DeviceList := AHI.GetDeviceList()
 keysDict := {}
 keysDict["LControl"] := {"block": 1, "state": 0, "keysc": GetKeySC("LControl")}
 keysDict["LAlt"] := {"block": 1, "state": 0, "keysc": GetKeySC("LAlt")}
-keysDict["a"] := {"block": 1, "state": 0, "keysc": GetKeySC("a")}
-keysDict["s"] := {"block": 1, "state": 0, "keysc": GetKeySC("s")}
-keysDict["z"] := {"block": 1, "state": 0, "keysc": GetKeySC("z")}
+keysDict["a"] := {"block": 1, "state": 0, "keysc": GetKeySC("a"), "desktop": 1}
+keysDict["s"] := {"block": 1, "state": 0, "keysc": GetKeySC("s"), "desktop": 2}
+keysDict["z"] := {"block": 1, "state": 0, "keysc": GetKeySC("z"), "desktop": 3}
 keysDict["q"] := {"block": 1, "state": 0, "keysc": GetKeySC("q"), "keysc2": GetKeySC("Home")}
 keysDict["w"] := {"block": 1, "state": 0, "keysc": GetKeySC("w"), "keysc2": GetKeySC("End")}
+keysDict["e"] := {"block": 1, "state": 0, "keysc": GetKeySC("e"), "keysc2": GetKeySC("PgUp")}
+keysDict["d"] := {"block": 1, "state": 0, "keysc": GetKeySC("d"), "keysc2": GetKeySC("PgDn")}
 keysDict["Delete"] := {"block": 1, "state": 0, "keysc": GetKeySC("Delete"), "keysc2": GetKeySC("Insert")}
-AAA
+
 for deviceId, device in DeviceList {
     if (device.IsMouse = 0) {
         for keyName, keyData in keysDict {
@@ -40,45 +42,26 @@ KeyEvent(deviceId, keyName, state) {
     keysDict[keyName].state := state
 
     if (keysDict["LControl"].state && keysDict["LAlt"].state) {
-        if( keysDict["a"].state){
-            GoToDesktopNumber(0)
-            Return
-        }
-        if (keysDict["s"].state) {
-            GoToDesktopNumber(1)
-            Return
-        }
-        if (keysDict["z"].state) {
-            GoToDesktopNumber(2)
-            Return
-        }
-        if (keysDict["q"].state) {
-            AHI.SendKeyEvent(deviceId, keysDict["LControl"].keysc, 0)
-            AHI.SendKeyEvent(deviceId, keysDict["LAlt"].keysc, 0)
+        for _, keyData in keysDict {
+            if(keyData["state"]){
+                if  (ObjHasKey(keyData, "desktop")){
+                    GoToDesktopNumber(keyData["desktop"])
+                    Return
+                }
+                if (ObjHasKey(keyData, "keysc2")){
+                    AHI.SendKeyEvent(deviceId, keysDict["LControl"].keysc, 0)
+                    AHI.SendKeyEvent(deviceId, keysDict["LAlt"].keysc, 0)
+                    AHI.SendKeyEvent(deviceId, keyData["keysc2"]  , 1)
+                    AHI.SendKeyEvent(deviceId, keyData["keysc2"] , 0)
+                    Return
+                }
 
-            AHI.SendKeyEvent(deviceId, keysDict["q"].keysc2, 1)
-            AHI.SendKeyEvent(deviceId, keysDict["q"].keysc2, 0)
-            Return
-        }
-        if (keysDict["w"].state) {
-            AHI.SendKeyEvent(deviceId, keysDict["LControl"].keysc, 0)
-            AHI.SendKeyEvent(deviceId, keysDict["LAlt"].keysc, 0)
-
-            AHI.SendKeyEvent(deviceId, keysDict["w"].keysc2, 1)
-            AHI.SendKeyEvent(deviceId, keysDict["w"].keysc2, 0)
-            Return
-        }
-        if (keysDict["Delete"].state) {
-            AHI.SendKeyEvent(deviceId, keysDict["LControl"].keysc, 0)
-            AHI.SendKeyEvent(deviceId, keysDict["LAlt"].keysc, 0)
-
-            AHI.SendKeyEvent(deviceId, keysDict["Delete"].keysc2, 1)
-            AHI.SendKeyEvent(deviceId, keysDict["Delete"].keysc2, 0)
-            Return
+            }
         }
     }
 
-    AHI.SendKeyEvent(deviceId, keysDict[keyName].keysc, state)
+    ToolTip,   %deviceId%  %keyName% %state%
+    AHI.SendKeyEvent(deviceId, keysDict[keyName].keysc, state) ; not target key, send to all
 }
 
 ; #:WIN  ^:Ctrl !:Alt  +:Shift
